@@ -1,12 +1,11 @@
 from COM import COM
-from serial import SerialException as SerialE
-
 from WS import WSControl
 
 
 def getInput(text=None, ws=None):
         if ws is not None:
             ws.printPossibilites()
+            return input("Select query:")
         else:
             return input(text)
 
@@ -25,17 +24,10 @@ if __name__ == "__main__":
     if target-1 > len(ports):
         print("No such port!")
         exit(-1)
-    print("Opening: "+ports[target].device)
     port = COM(ports[target].device)
-    try:
-        port.openPort()
-    except SerialE as e:
-        print("Error occured when opening " + ports[target].device + ": "+str(e))
-        # exit(-1)
-    except:
-        print("Fatal error occured when opening - exit now!")
-        exit(-1)
-    print("Port is now open!")
-
     station = WSControl(port)
-    getInput(ws=station)
+
+    station.comConnectToStation()
+
+    op = getInput(ws=station)
+    station.cmd(int(op))
