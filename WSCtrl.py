@@ -1,5 +1,6 @@
 from COM import COM
 from WS import WSControl
+from WS import DataInterpreter as DI
 
 
 def getInput(text=None, ws=None):
@@ -30,4 +31,11 @@ if __name__ == "__main__":
     station.comConnectToStation()
 
     op = getInput(ws=station)
-    station.cmd(int(op))
+    bytesN = station.cmd(int(op))  # start data processing
+    bytesOfResp = int.from_bytes(bytesN, byteorder='little')
+    bytesOfResp = bytesOfResp & 3
+    resp = bytearray()
+    for i in range(0, bytesOfResp):
+        resp[i:i] = station.getSerialOutput()
+    temp = int.from_bytes(resp, byteorder="little", signed=True)
+    print("Temp is : " + str(temp))

@@ -2,7 +2,7 @@ station_id = 0
 
 
 VERSION_SENSORS = {
-    0: [("Temp", bytes.fromhex('01'))]
+    1: [("Temp", bytes.fromhex('01'))],
 }
 
 
@@ -47,5 +47,8 @@ class WSControl:
         sensors = VERSION_SENSORS[self.__version]
         selected = sensors[op][1]
         query = self.__buildQuery(selected)  # in bytes
+        self.serial.send(query)
+        return self.serial.read()
 
-        
+    def getSerialOutput(self):
+        return self.serial.read()
