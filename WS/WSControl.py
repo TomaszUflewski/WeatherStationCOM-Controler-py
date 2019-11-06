@@ -3,6 +3,9 @@ station_id = 0
 
 VERSION_SENSORS = {
     1: [("Temp", bytes.fromhex('01'))],
+
+    2: [("Temp", bytes.fromhex('01')),
+        ("Pressure", bytes.fromhex('03'))],
 }
 
 
@@ -43,6 +46,10 @@ class WSControl:
         op = hT + int.from_bytes(sensor, byteorder='little')
         return bytes([op])
 
+    def getSensorName(self, op):
+        sensors = VERSION_SENSORS[self.__version]
+        return sensors[op][0]
+        
     def cmd(self, op):
         sensors = VERSION_SENSORS[self.__version]
         selected = sensors[op][1]
