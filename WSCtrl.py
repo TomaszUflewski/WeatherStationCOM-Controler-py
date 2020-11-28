@@ -1,6 +1,7 @@
 from COM import COM
 from WS import WSControl
 
+import time
 
 def getInput(text=None, ws=None):
         if ws is not None:
@@ -18,13 +19,18 @@ def printList(list):
 
 
 def getTemp(respBytes):
-    return int.from_bytes(resp, byteorder="little", signed=True)
+    print(respBytes)
+    return int.from_bytes(respBytes, byteorder="little", signed=True)
 
 
 def getPressure(respBytes):
     value = int.from_bytes(resp, byteorder="little", signed=True)
     value = value/100  # move point
     return value/10  # form mb to kPa
+
+
+def PLACEHOLDER(respBytes):
+    pass
 
 
 temp = getTemp
@@ -34,7 +40,8 @@ press = getPressure
 def SwitchOnSensorName(name):
     return {
         "Temp": (getTemp, "C"),
-        "Pressure": (getPressure, "kPa")
+        "Pressure": (getPressure, "kPa"),
+        "Configuration and maintenace mode": (PLACEHOLDER, ".")
     }[name]
 
 
@@ -50,17 +57,24 @@ if __name__ == "__main__":
 
     station.comConnectToStation()
 
-    op = getInput(ws=station)
-    bytesN = station.cmd(int(op))  # start data processing
-    bytesOfResp = int.from_bytes(bytesN, byteorder='little')
-    print(bytesN)
-    bytesOfResp = bytesOfResp & 3
-    resp = bytearray()
-    for i in range(0, bytesOfResp):
-        resp[i:i] = station.getSerialOutput()
-    print(resp)
-    sensorName = station.getSensorName(int(op))
-    value = SwitchOnSensorName(sensorName)[0](resp)
-    unit = SwitchOnSensorName(sensorName)[1]
+    while(True):
+        op = getInput(ws=station)
 
-    print(sensorName+" is : " + str(value) + unit)
+        if op == "ctrl":
+            station.startInteractiveMode()
+
+        if op == "EOF":
+            exit()
+
+        bytesN = station.cmd(int(op))  # start data processing
+        bytesOfResp = int.from_bytes(bytesN, byteorder='little')
+        bytesOfResp = bytesOfResp & 3
+        if bytesOfResp > 0:
+            resp = bytearray()
+            for i in range(0, bytesOfResp):
+                resp[i:i] = station.getSerialOutput()
+            sensorName = station.getSensorName(int(op))
+            value = SwitchOnSensorName(sensorName)[0](resp)
+            unit = SwitchOnSensorName(sensorName)[1]
+            print(">>>> "+sensorName+" is : " + str(value) + unit)     
+        print("--------------------------")
